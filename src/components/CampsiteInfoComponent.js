@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Card, CardImg, CardText, CardBody, Breadcrumb, BreadcrumbItem, Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input } from "reactstrap";
+import { Card, CardImg, CardText, CardBody, Breadcrumb, BreadcrumbItem, Button, Modal, ModalHeader, ModalBody, Label } from "reactstrap";
 import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors } from 'react-redux-form';
 
@@ -25,14 +25,14 @@ class CommentForm extends Component {
   }
 
   handleSubmit(values) {
-    console.log('Current state is: ' + JSON.stringify(values));
-    alert('Current state is: ' + JSON.stringify(values));
+    this.toggleModal();
+    this.props.addComment(this.props.campsiteId, values.rating, values.author, values.text);
   }
 
 
   render() {
     return(<>
-      <Button outline className="fa fa-pencil fa-lg" onClick={this.toggleModal}> Submit Comment</Button>
+      <Button outline onClick={this.toggleModal}><i className="fa fa-pencil fa-lg" ></i> Submit Comment</Button>
       <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
         <ModalHeader toggle={this.toggleModal}>Submit Comment</ModalHeader>
         <ModalBody>
@@ -86,8 +86,8 @@ class CommentForm extends Component {
               />
             </div>
             <div className="form-group">
-              <Label htmlFor="comment" md={10}>Comment</Label>
-              <Control.textarea rows="6" model=".comment" id="comment" name="comment"
+              <Label htmlFor="text" md={10}>Comment</Label>
+              <Control.textarea rows="6" model=".text" id="text" name="text"
                 className="form-control"
                 placeholder=""
                 validators={{
@@ -96,7 +96,7 @@ class CommentForm extends Component {
                 />
                 <Errors 
                   className="text-danger"
-                  model=".comment"
+                  model=".text"
                   show="touched"
                   component="div"
                   messages={{
@@ -129,30 +129,25 @@ class CommentForm extends Component {
     );
   }
 
-  function RenderComments({comments}) {
+  function RenderComments({comments, addComment, campsiteId}) {
     if (comments) {
       return (
         <div className="col-md-5 m-1">
           <h4>Comments</h4>
-          {comments.map((comments) => (
-            <div key={comments.id}>
-              {" "}
-              {comments.text}
-              <br></br>
-              -- {comments.author},{" "}
-              {new Intl.DateTimeFormat("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "2-digit",
-              }).format(new Date(Date.parse(comments.date)))}
-            </div>
-          ))}
-          <CommentForm />
+          {comments.map(comments => {
+            return (
+              <div key={comments.id}>
+                <p>{comments.text}<br />
+                 --{comments.author} {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit'}).format(new Date(Date.parse(comments.date)))}
+                </p>
+              </div>
+            )
+          })}
+          <CommentForm campsiteId={campsiteId} addComment={addComment} />
         </div>
       );
-    } else {
+    } 
       return <div></div>;
-    }
   }
 
   function CampsiteInfo(props) {
@@ -171,7 +166,11 @@ class CommentForm extends Component {
             </div>
             <div className="row">
                 <RenderCampsite campsite={props.campsite} />
-                <RenderComments comments={props.comments} />
+                <RenderComments 
+                comments={props.comments} 
+                addComment={props.addComment}
+                campsiteId={props.campsite.id}
+                />
             </div>
         </div>
     );
